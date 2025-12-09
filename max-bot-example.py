@@ -3,6 +3,7 @@
 Используется интерактивный ввод из консоли.
 """
 
+import re
 from maxbot import MaxBot
 
 # Инициализируем MaxBot с простым диалогом
@@ -52,7 +53,28 @@ def main() -> None:
             for command in commands:
                 reply = command.get("text")
                 if reply:
-                    print(f"🤖: {reply}")
+                    # Преобразуем ответ в строку (MaxBot возвращает объекты maxml.markup.Value)
+                    # Пробуем разные способы извлечения текста
+                    try:
+                        # Если это объект с атрибутом value
+                        if hasattr(reply, 'value'):
+                            reply_text = str(reply.value)
+                        # Если это объект с методом render
+                        elif hasattr(reply, 'render'):
+                            reply_text = str(reply.render())
+                        # Иначе просто преобразуем в строку
+                        else:
+                            reply_text = str(reply)
+                            # Убираем лишние символы из строкового представления объекта
+                            if reply_text.startswith('<maxml.markup.Value'):
+                                # Извлекаем текст из строки вида "<maxml.markup.Value'текст'>"
+                                match = re.search(r"'([^']+)'", reply_text)
+                                if match:
+                                    reply_text = match.group(1)
+                    except Exception as e:
+                        reply_text = str(reply)
+                    
+                    print(f"🤖: {reply_text}")
                 else:
                     print(f"🤖: (команда без текста) {command}")
         except (EOFError, KeyboardInterrupt):
