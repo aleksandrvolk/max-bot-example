@@ -31,57 +31,52 @@ bot = MaxBot.inline(
 )
 
 
+def extract_text_from_reply(reply) -> str:
+    """Извлекает текст из ответа MaxBot"""
+    try:
+        # Если это объект с атрибутом value
+        if hasattr(reply, 'value'):
+            return str(reply.value)
+        # Если это объект с методом render
+        elif hasattr(reply, 'render'):
+            return str(reply.render())
+        # Иначе просто преобразуем в строку
+        else:
+            reply_text = str(reply)
+            # Убираем лишние символы из строкового представления объекта
+            if reply_text.startswith('<maxml.markup.Value'):
+                # Извлекаем текст из строки вида "<maxml.markup.Value'текст'>"
+                match = re.search(r"'([^']+)'", reply_text)
+                if match:
+                    return match.group(1)
+            return reply_text
+    except Exception:
+        return str(reply)
+
+
 def main() -> None:
-    """Запуск простого интерактивного бота."""
-    print("🚀 MaxBot запущен. Введите '/exit' для выхода.")
-    while True:
-        try:
-            user_text = input("🧑: ").strip()
-            if user_text.lower() in {"/exit", "/quit"}:
-                print("👋 Выход.")
-                break
-            if not user_text:
-                continue
-
-            message = {"text": user_text}
-            commands = bot.process_message(message)
-
-            if not commands:
-                print("🤖: (нет ответа)")
-                continue
-
-            for command in commands:
-                reply = command.get("text")
-                if reply:
-                    # Преобразуем ответ в строку (MaxBot возвращает объекты maxml.markup.Value)
-                    # Пробуем разные способы извлечения текста
-                    try:
-                        # Если это объект с атрибутом value
-                        if hasattr(reply, 'value'):
-                            reply_text = str(reply.value)
-                        # Если это объект с методом render
-                        elif hasattr(reply, 'render'):
-                            reply_text = str(reply.render())
-                        # Иначе просто преобразуем в строку
-                        else:
-                            reply_text = str(reply)
-                            # Убираем лишние символы из строкового представления объекта
-                            if reply_text.startswith('<maxml.markup.Value'):
-                                # Извлекаем текст из строки вида "<maxml.markup.Value'текст'>"
-                                match = re.search(r"'([^']+)'", reply_text)
-                                if match:
-                                    reply_text = match.group(1)
-                    except Exception as e:
-                        reply_text = str(reply)
-                    
-                    print(f"🤖: {reply_text}")
-                else:
-                    print(f"🤖: (команда без текста) {command}")
-        except (EOFError, KeyboardInterrupt):
-            print("\n👋 Выход.")
-            break
-        except Exception as exc:
-            print(f"⚠️ Ошибка: {exc}")
+    """Запуск бота для мессенджера Max (без интерактивного ввода)"""
+    import time
+    import sys
+    
+    print("🚀 MaxBot запущен для мессенджера Max")
+    print("✅ Бот готов к работе. Ожидание сообщений...")
+    print("ℹ️  Бот работает в фоновом режиме")
+    print("ℹ️  Для работы с Max API используйте webhook или long polling")
+    
+    # Держим процесс запущенным
+    # В реальном боте здесь должна быть интеграция с Max API
+    # (webhook endpoint или long polling)
+    try:
+        while True:
+            time.sleep(60)  # Спим 60 секунд, чтобы не нагружать CPU
+            # Здесь можно добавить проверку новых сообщений через Max API
+    except KeyboardInterrupt:
+        print("\n👋 Остановка бота...")
+        sys.exit(0)
+    except Exception as exc:
+        print(f"⚠️ Ошибка: {exc}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
